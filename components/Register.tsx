@@ -1,6 +1,6 @@
 import { useAuthContext } from "@/context/AuthContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useRouter } from "expo-router";
+import { Link } from "expo-router";
 import React from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -20,9 +20,8 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const Login = () => {
-  const { login, loading, error } = useAuthContext();
-  const router = useRouter();
+const Register = () => {
+  const { register: registerUser, loading, error } = useAuthContext();
   const {
     handleSubmit,
     register: rhfRegister,
@@ -34,12 +33,12 @@ const Login = () => {
   });
 
   const onSubmit = async (data: FormData) => {
-    await login(data.email, data.password);
+    await registerUser(data.email, data.password);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign in</Text>
+      <Text style={styles.title}>Sign up</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -68,12 +67,12 @@ const Login = () => {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Sign in</Text>
+          <Text style={styles.buttonText}>Sign up</Text>
         )}
       </TouchableOpacity>
       <View style={styles.switchRow}>
         <Text style={styles.switchText}>Not registered yet? </Text>
-        <Link href="/register" style={styles.link}>
+        <Link href="/" style={styles.link}>
           Sign up
         </Link>
       </View>
@@ -81,7 +80,7 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
 
 const styles = StyleSheet.create({
   container: {
