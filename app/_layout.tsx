@@ -9,12 +9,18 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 function RootStack() {
   const { user, loading } = useAuthContext();
 
   if (loading) {
-    return null;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1e90ff" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
   }
 
   if (!user) {
@@ -32,6 +38,20 @@ function RootStack() {
     </Stack>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 18,
+    color: "#1e90ff",
+  },
+});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
