@@ -79,7 +79,7 @@ const Register = () => {
       </TouchableOpacity>
       <View style={styles.switchRow}>
         <Text style={styles.switchText}>Already have an account? </Text>
-        <Link href="/" style={styles.link}>
+        <Link href="/login" style={styles.link}>
           Sign in
         </Link>
       </View>

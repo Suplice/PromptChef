@@ -1,3 +1,5 @@
+import { AuthProvider, useAuthContext } from "@/context/AuthContext";
+import { useColorScheme } from "@/hooks/useColorScheme";
 import {
   DarkTheme,
   DefaultTheme,
@@ -6,10 +8,30 @@ import {
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import "react-native-reanimated";
+import React from "react";
 
-import { AuthProvider } from "@/context/AuthContext";
-import { useColorScheme } from "@/hooks/useColorScheme";
+function RootStack() {
+  const { user, loading } = useAuthContext();
+
+  if (loading) {
+    return null;
+  }
+
+  if (!user) {
+    return (
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
+      </Stack>
+    );
+  }
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -17,18 +39,12 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
+  if (!loaded) return null;
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <AuthProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
+        <RootStack />
         <StatusBar style="auto" />
       </AuthProvider>
     </ThemeProvider>
