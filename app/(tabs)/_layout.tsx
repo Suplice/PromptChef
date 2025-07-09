@@ -34,6 +34,12 @@ export default function TabLayout() {
           title: "Register",
         }}
       />
+      <Tabs.Screen
+        name="main"
+        options={{
+          title: "Main",
+        }}
+      />
     </Tabs>
   );
 }

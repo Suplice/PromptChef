@@ -1,7 +1,7 @@
 import { useAuthContext } from "@/context/AuthContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "expo-router";
-import React from "react";
+import { Link, useRouter } from "expo-router";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -21,7 +21,8 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const Register = () => {
-  const { register: registerUser, loading, error } = useAuthContext();
+  const { register: registerUser, loading, error, user } = useAuthContext();
+  const router = useRouter();
   const {
     handleSubmit,
     register: rhfRegister,
@@ -31,6 +32,12 @@ const Register = () => {
     resolver: zodResolver(schema),
     defaultValues: { email: "", password: "" },
   });
+
+  useEffect(() => {
+    if (user && !error) {
+      router.replace("/main");
+    }
+  }, [user, error]);
 
   const onSubmit = async (data: FormData) => {
     await registerUser(data.email, data.password);
@@ -71,9 +78,9 @@ const Register = () => {
         )}
       </TouchableOpacity>
       <View style={styles.switchRow}>
-        <Text style={styles.switchText}>Not registered yet? </Text>
+        <Text style={styles.switchText}>Already have an account? </Text>
         <Link href="/" style={styles.link}>
-          Sign up
+          Sign in
         </Link>
       </View>
     </View>

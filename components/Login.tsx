@@ -1,7 +1,7 @@
 import { useAuthContext } from "@/context/AuthContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -21,7 +21,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const Login = () => {
-  const { login, loading, error } = useAuthContext();
+  const { login, loading, error, user } = useAuthContext();
   const router = useRouter();
   const {
     handleSubmit,
@@ -32,6 +32,12 @@ const Login = () => {
     resolver: zodResolver(schema),
     defaultValues: { email: "", password: "" },
   });
+
+  useEffect(() => {
+    if (user && !error) {
+      router.replace("/main");
+    }
+  }, [user, error]);
 
   const onSubmit = async (data: FormData) => {
     await login(data.email, data.password);
