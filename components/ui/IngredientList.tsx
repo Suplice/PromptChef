@@ -1,5 +1,3 @@
-// IngredientList.tsx
-// Responsive, horizontal scrollable list of selected ingredients with remove option
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 

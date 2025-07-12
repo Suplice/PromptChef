@@ -1,5 +1,6 @@
 import IngredientList from "@/components/ui/IngredientList";
 import IngredientPicker from "@/components/ui/IngredientPicker";
+import IngredientSheet from "@/components/ui/IngredientSheet";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -19,6 +20,8 @@ const INGREDIENTS = [
 const MainScreen: React.FC = () => {
   const [selectedIngredient, setSelectedIngredient] = useState<string>("");
   const [chosenIngredients, setChosenIngredients] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showSheet, setShowSheet] = useState(false);
 
   const handleAddIngredient = () => {
     if (selectedIngredient && !chosenIngredients.includes(selectedIngredient)) {
@@ -29,6 +32,14 @@ const MainScreen: React.FC = () => {
 
   const handleRemoveIngredient = (ingredient: string) => {
     setChosenIngredients((prev) => prev.filter((i) => i !== ingredient));
+  };
+
+  const handleGenerate = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setShowSheet(true);
+    }, 1200);
   };
 
   return (
@@ -50,9 +61,21 @@ const MainScreen: React.FC = () => {
         ingredients={chosenIngredients}
         onRemove={handleRemoveIngredient}
       />
-      <TouchableOpacity style={styles.generateButton} onPress={() => {}}>
-        <Text style={styles.generateButtonText}>Generate</Text>
+      <TouchableOpacity
+        style={styles.generateButton}
+        onPress={handleGenerate}
+        disabled={loading || chosenIngredients.length === 0}
+      >
+        <Text style={styles.generateButtonText}>
+          {loading ? "Loading..." : "Generate"}
+        </Text>
       </TouchableOpacity>
+
+      <IngredientSheet
+        visible={showSheet}
+        ingredients={chosenIngredients}
+        onClose={() => setShowSheet(false)}
+      />
     </View>
   );
 };
@@ -84,6 +107,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     borderRadius: 10,
     marginTop: 16,
+    minWidth: 140,
+    alignItems: "center",
   },
   generateButtonText: {
     color: "#fff",
