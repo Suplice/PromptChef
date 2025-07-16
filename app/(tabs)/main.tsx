@@ -1,6 +1,8 @@
 import IngredientList from "@/components/ui/IngredientList";
 import IngredientPicker from "@/components/ui/IngredientPicker";
-import IngredientSheet from "@/components/ui/IngredientSheet";
+import RecipeDisplay from "@/components/ui/RecipeDisplay";
+import { useHFRecipe } from "@/hooks/useHFRecipe";
+import { Picker } from "@react-native-picker/picker";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -17,11 +19,34 @@ const INGREDIENTS = [
   "Garlic",
 ];
 
+const HF_MODELS = [
+  {
+    label: "Llama 3 8B Instruct (default)",
+    value: "meta-llama/Llama-3-8B-Instruct",
+  },
+  { label: "Llama 3 70B Instruct", value: "meta-llama/Llama-3-70B-Instruct" },
+  {
+    label: "moonshotai",
+    value: "mistralai/Mistral-7B-Instruct",
+  },
+  { label: "DeepSeek V3", value: "deepseek-ai/DeepSeek-V3-8B-Chat" },
+];
+
 const MainScreen: React.FC = () => {
   const [selectedIngredient, setSelectedIngredient] = useState<string>("");
   const [chosenIngredients, setChosenIngredients] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showSheet, setShowSheet] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>(
+    HF_MODELS[0].value
+  );
+
+  const {
+    loading,
+    error,
+    recipe,
+    setModel,
+    generateRecipe,
+    reset: resetRecipe,
+  } = useHFRecipe({ model: selectedModel });
 
   const handleAddIngredient = () => {
     if (selectedIngredient && !chosenIngredients.includes(selectedIngredient)) {
@@ -35,11 +60,18 @@ const MainScreen: React.FC = () => {
   };
 
   const handleGenerate = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setShowSheet(true);
-    }, 1200);
+    generateRecipe(chosenIngredients, selectedModel);
+  };
+
+  const handleReset = () => {
+    resetRecipe();
+    setChosenIngredients([]);
+    setSelectedIngredient("");
+  };
+
+  const handleModelChange = (value: string) => {
+    setSelectedModel(value);
+    setModel(value);
   };
 
   return (
@@ -53,7 +85,9 @@ const MainScreen: React.FC = () => {
         setSelectedIngredient={setSelectedIngredient}
         onAdd={handleAddIngredient}
         disabled={
-          !selectedIngredient || chosenIngredients.includes(selectedIngredient)
+          !selectedIngredient ||
+          chosenIngredients.includes(selectedIngredient) ||
+          !!recipe
         }
       />
       <Text style={styles.subtitle}>Selected ingredients:</Text>
@@ -61,21 +95,42 @@ const MainScreen: React.FC = () => {
         ingredients={chosenIngredients}
         onRemove={handleRemoveIngredient}
       />
-      <TouchableOpacity
-        style={styles.generateButton}
-        onPress={handleGenerate}
-        disabled={loading || chosenIngredients.length === 0}
+      <Text style={styles.subtitle}>Model (Hugging Face):</Text>
+      <Picker
+        selectedValue={selectedModel}
+        onValueChange={handleModelChange}
+        enabled={!recipe && !loading}
+        style={{ width: "100%", marginBottom: 12 }}
       >
-        <Text style={styles.generateButtonText}>
-          {loading ? "Loading..." : "Generate"}
-        </Text>
-      </TouchableOpacity>
-
-      <IngredientSheet
-        visible={showSheet}
-        ingredients={chosenIngredients}
-        onClose={() => setShowSheet(false)}
-      />
+        {HF_MODELS.map((m) => (
+          <Picker.Item key={m.value} label={m.label} value={m.value} />
+        ))}
+      </Picker>
+      {error && <Text style={{ color: "red", marginBottom: 8 }}>{error}</Text>}
+      {recipe ? (
+        <>
+          <RecipeDisplay recipe={recipe} />
+          <TouchableOpacity
+            style={[
+              styles.generateButton,
+              { backgroundColor: "#b0c4d4", marginTop: 12 },
+            ]}
+            onPress={handleReset}
+          >
+            <Text style={styles.generateButtonText}>Reset</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <TouchableOpacity
+          style={styles.generateButton}
+          onPress={handleGenerate}
+          disabled={loading || chosenIngredients.length === 0}
+        >
+          <Text style={styles.generateButtonText}>
+            {loading ? "Loading..." : "Generate"}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
