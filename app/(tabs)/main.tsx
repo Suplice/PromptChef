@@ -1,17 +1,10 @@
 import IngredientList from "@/components/ui/IngredientList";
 import IngredientPicker from "@/components/ui/IngredientPicker";
-import RecipeDisplay from "@/components/ui/RecipeDisplay";
+import RecipeSheet from "@/components/ui/RecipeSheet";
 import { useHFRecipe } from "@/hooks/useHFRecipe";
 import { Picker } from "@react-native-picker/picker";
 import React, { useState } from "react";
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const INGREDIENTS = [
   "Tomato",
@@ -117,27 +110,12 @@ const MainScreen: React.FC = () => {
         ))}
       </Picker>
       {error && <Text style={{ color: "red", marginBottom: 8 }}>{error}</Text>}
-      <Modal
-        visible={!!recipe && recipeSheetVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={handleReset}
-      >
-        <View style={styles.sheetOverlay}>
-          <View style={styles.sheetContainer}>
-            <Pressable style={styles.closeButton} onPress={handleReset}>
-              <Text style={styles.closeButtonText}>×</Text>
-            </Pressable>
-            {recipe && <RecipeDisplay recipe={recipe} />}
-            <TouchableOpacity
-              style={styles.generateButton}
-              onPress={handleReset}
-            >
-              <Text style={styles.generateButtonText}>Reset</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <RecipeSheet
+        visible={recipeSheetVisible}
+        recipe={recipe}
+        onClose={handleReset}
+        onReset={handleReset}
+      />
       {!recipe && (
         <TouchableOpacity
           style={styles.generateButton}
@@ -187,41 +165,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 20,
     fontWeight: "bold",
-  },
-  sheetOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.25)",
-    justifyContent: "flex-end",
-  },
-  sheetContainer: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    minHeight: 320,
-    maxHeight: "80%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  closeButton: {
-    position: "absolute",
-    top: 12,
-    right: 16,
-    zIndex: 10,
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 18,
-  },
-  closeButtonText: {
-    fontSize: 32,
-    color: "#888",
-    fontWeight: "bold",
-    lineHeight: 32,
   },
 });
 
