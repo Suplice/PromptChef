@@ -11,6 +11,8 @@ export interface RecipeHistoryItem {
 interface RecipeHistoryContextType {
   history: RecipeHistoryItem[];
   addRecipe: (item: Omit<RecipeHistoryItem, "id" | "timestamp">) => void;
+  removeRecipe: (id: string) => void;
+  clearHistory: () => void;
 }
 
 const RecipeHistoryContext = createContext<
@@ -35,8 +37,18 @@ export const RecipeHistoryProvider = ({
     ]);
   };
 
+  const removeRecipe = (id: string) => {
+    setHistory((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+  };
+
   return (
-    <RecipeHistoryContext.Provider value={{ history, addRecipe }}>
+    <RecipeHistoryContext.Provider
+      value={{ history, addRecipe, removeRecipe, clearHistory }}
+    >
       {children}
     </RecipeHistoryContext.Provider>
   );

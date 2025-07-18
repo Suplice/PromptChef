@@ -11,18 +11,29 @@ import {
 interface RecipeHistoryListProps {
   history: RecipeHistoryItem[];
   onOpen: (item: RecipeHistoryItem) => void;
+  onRemove?: (id: string) => void;
+  onClear?: () => void;
 }
 
 const RecipeHistoryList: React.FC<RecipeHistoryListProps> = ({
   history,
   onOpen,
+  onRemove,
+  onClear,
 }) => {
   if (history.length === 0) {
     return <Text style={styles.empty}>No recipes yet.</Text>;
   }
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Recipe history</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Recipe history</Text>
+        {onClear && (
+          <TouchableOpacity style={styles.clearButton} onPress={onClear}>
+            <Text style={styles.clearButtonText}>Clear</Text>
+          </TouchableOpacity>
+        )}
+      </View>
       <FlatList
         data={history}
         keyExtractor={(item) => item.id}
@@ -43,6 +54,14 @@ const RecipeHistoryList: React.FC<RecipeHistoryListProps> = ({
             >
               <Text style={styles.openButtonText}>Open</Text>
             </TouchableOpacity>
+            {onRemove && (
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => onRemove(item.id)}
+              >
+                <Text style={styles.removeButtonText}>✕</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
         style={{ maxHeight: 220 }}
@@ -57,11 +76,27 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     marginTop: 8,
   },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 8,
     color: "#0a7ea4",
+  },
+  clearButton: {
+    backgroundColor: "#e57373",
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  clearButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 15,
   },
   item: {
     flexDirection: "row",
@@ -92,6 +127,18 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 15,
+  },
+  removeButton: {
+    backgroundColor: "#e57373",
+    marginLeft: 8,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  removeButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   empty: {
     color: "#888",

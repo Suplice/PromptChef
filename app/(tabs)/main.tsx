@@ -41,7 +41,7 @@ const MainScreen: React.FC = () => {
     HF_MODELS[0].value
   );
   const [recipeSheetVisible, setRecipeSheetVisible] = useState(false);
-  const { history, addRecipe } = useRecipeHistory();
+  const { history, addRecipe, removeRecipe, clearHistory } = useRecipeHistory();
   const [openedHistoryRecipe, setOpenedHistoryRecipe] = useState<null | {
     recipe: string;
   }>(null);
@@ -101,6 +101,19 @@ const MainScreen: React.FC = () => {
         onOpen={(item) => {
           setOpenedHistoryRecipe({ recipe: item.recipe });
           setRecipeSheetVisible(false);
+        }}
+        onRemove={removeRecipe}
+        onClear={() => {
+          if (window.confirm && typeof window !== "undefined") {
+            if (
+              window.confirm(
+                "Are you sure you want to clear all recipe history?"
+              )
+            )
+              clearHistory();
+          } else {
+            clearHistory();
+          }
         }}
       />
       <Text style={styles.title}>Select ingredients</Text>
