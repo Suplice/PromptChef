@@ -4,7 +4,14 @@ import RecipeDisplay from "@/components/ui/RecipeDisplay";
 import { useHFRecipe } from "@/hooks/useHFRecipe";
 import { Picker } from "@react-native-picker/picker";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const INGREDIENTS = [
   "Tomato",
@@ -38,6 +45,7 @@ const MainScreen: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState<string>(
     HF_MODELS[0].value
   );
+  const [recipeSheetVisible, setRecipeSheetVisible] = useState(false);
 
   const {
     loading,
@@ -61,12 +69,14 @@ const MainScreen: React.FC = () => {
 
   const handleGenerate = () => {
     generateRecipe(chosenIngredients, selectedModel);
+    setRecipeSheetVisible(true);
   };
 
   const handleReset = () => {
     resetRecipe();
     setChosenIngredients([]);
     setSelectedIngredient("");
+    setRecipeSheetVisible(false);
   };
 
   const handleModelChange = (value: string) => {
@@ -107,20 +117,28 @@ const MainScreen: React.FC = () => {
         ))}
       </Picker>
       {error && <Text style={{ color: "red", marginBottom: 8 }}>{error}</Text>}
-      {recipe ? (
-        <>
-          <RecipeDisplay recipe={recipe} />
-          <TouchableOpacity
-            style={[
-              styles.generateButton,
-              { backgroundColor: "#b0c4d4", marginTop: 12 },
-            ]}
-            onPress={handleReset}
-          >
-            <Text style={styles.generateButtonText}>Reset</Text>
-          </TouchableOpacity>
-        </>
-      ) : (
+      <Modal
+        visible={!!recipe && recipeSheetVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleReset}
+      >
+        <View style={styles.sheetOverlay}>
+          <View style={styles.sheetContainer}>
+            <Pressable style={styles.closeButton} onPress={handleReset}>
+              <Text style={styles.closeButtonText}>×</Text>
+            </Pressable>
+            {recipe && <RecipeDisplay recipe={recipe} />}
+            <TouchableOpacity
+              style={styles.generateButton}
+              onPress={handleReset}
+            >
+              <Text style={styles.generateButtonText}>Reset</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      {!recipe && (
         <TouchableOpacity
           style={styles.generateButton}
           onPress={handleGenerate}
@@ -169,6 +187,41 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 20,
     fontWeight: "bold",
+  },
+  sheetOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    justifyContent: "flex-end",
+  },
+  sheetContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    minHeight: 320,
+    maxHeight: "80%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  closeButton: {
+    position: "absolute",
+    top: 12,
+    right: 16,
+    zIndex: 10,
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 18,
+  },
+  closeButtonText: {
+    fontSize: 32,
+    color: "#888",
+    fontWeight: "bold",
+    lineHeight: 32,
   },
 });
 
