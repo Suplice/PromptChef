@@ -1,6 +1,5 @@
 import IngredientList from "@/components/ui/IngredientList";
 import IngredientPicker from "@/components/ui/IngredientPicker";
-import RecipeHistoryList from "@/components/ui/RecipeHistoryList";
 import RecipeSheet from "@/components/ui/RecipeSheet";
 import { useRecipeHistory } from "@/context/RecipeHistoryContext";
 import { useHFRecipe } from "@/hooks/useHFRecipe";
@@ -41,10 +40,7 @@ const MainScreen: React.FC = () => {
     HF_MODELS[0].value
   );
   const [recipeSheetVisible, setRecipeSheetVisible] = useState(false);
-  const { history, addRecipe, removeRecipe, clearHistory } = useRecipeHistory();
-  const [openedHistoryRecipe, setOpenedHistoryRecipe] = useState<null | {
-    recipe: string;
-  }>(null);
+  const { addRecipe } = useRecipeHistory();
 
   const {
     loading,
@@ -96,26 +92,6 @@ const MainScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <RecipeHistoryList
-        history={history}
-        onOpen={(item) => {
-          setOpenedHistoryRecipe({ recipe: item.recipe });
-          setRecipeSheetVisible(false);
-        }}
-        onRemove={removeRecipe}
-        onClear={() => {
-          if (window.confirm && typeof window !== "undefined") {
-            if (
-              window.confirm(
-                "Are you sure you want to clear all recipe history?"
-              )
-            )
-              clearHistory();
-          } else {
-            clearHistory();
-          }
-        }}
-      />
       <Text style={styles.title}>Select ingredients</Text>
       <IngredientPicker
         availableIngredients={INGREDIENTS.filter(
@@ -148,12 +124,9 @@ const MainScreen: React.FC = () => {
       </Picker>
       {error && <Text style={{ color: "red", marginBottom: 8 }}>{error}</Text>}
       <RecipeSheet
-        visible={recipeSheetVisible || !!openedHistoryRecipe}
-        recipe={openedHistoryRecipe ? openedHistoryRecipe.recipe : recipe}
-        onClose={() => {
-          setRecipeSheetVisible(false);
-          setOpenedHistoryRecipe(null);
-        }}
+        visible={recipeSheetVisible}
+        recipe={recipe}
+        onClose={handleReset}
         onReset={handleReset}
       />
       {!recipe && (
