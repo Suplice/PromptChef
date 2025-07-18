@@ -2,13 +2,22 @@ import RecipeHistoryList from "@/components/ui/RecipeHistoryList";
 import RecipeSheet from "@/components/ui/RecipeSheet";
 import { useRecipeHistory } from "@/context/RecipeHistoryContext";
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 const HistoryScreen: React.FC = () => {
-  const { history, removeRecipe, clearHistory } = useRecipeHistory();
+  const { history, removeRecipe, clearHistory, loading } = useRecipeHistory();
   const [openedHistoryRecipe, setOpenedHistoryRecipe] = useState<null | {
     recipe: string;
   }>(null);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0a7ea4" />
+        <Text style={styles.loadingText}>Loading your recipes...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -45,6 +54,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingTop: 40,
     paddingHorizontal: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 18,
+    color: "#0a7ea4",
   },
 });
 

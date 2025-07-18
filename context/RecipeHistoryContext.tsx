@@ -1,4 +1,22 @@
-import React, { createContext, ReactNode, useContext, useState } from "react";
+import { db } from "@/lib/firebase";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  orderBy,
+  query,
+  writeBatch,
+} from "firebase/firestore";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { useAuthContext } from "./AuthContext";
 
 export interface RecipeHistoryItem {
   id: string;
@@ -10,9 +28,13 @@ export interface RecipeHistoryItem {
 
 interface RecipeHistoryContextType {
   history: RecipeHistoryItem[];
-  addRecipe: (item: Omit<RecipeHistoryItem, "id" | "timestamp">) => void;
-  removeRecipe: (id: string) => void;
-  clearHistory: () => void;
+  loading: boolean;
+  error: string | null;
+  addRecipe: (
+    item: Omit<RecipeHistoryItem, "id" | "timestamp">
+  ) => Promise<void>;
+  removeRecipe: (id: string) => Promise<void>;
+  clearHistory: () => Promise<void>;
 }
 
 const RecipeHistoryContext = createContext<
@@ -24,30 +46,108 @@ export const RecipeHistoryProvider = ({
 }: {
   children: ReactNode;
 }) => {
+  const { user } = useAuthContext();
   const [history, setHistory] = useState<RecipeHistoryItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const addRecipe = (item: Omit<RecipeHistoryItem, "id" | "timestamp">) => {
-    setHistory((prev) => [
-      {
-        ...item,
-        id: Math.random().toString(36).slice(2),
-        timestamp: Date.now(),
-      },
-      ...prev,
-    ]);
+  useEffect(() => {
+    if (!user) {
+      setHistory([]);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    const fetchHistory = async () => {
+      try {
+        const q = query(
+          collection(db, "users", user.uid, "recipes"),
+          orderBy("timestamp", "desc")
+        );
+        const snapshot = await getDocs(q);
+        const items: RecipeHistoryItem[] = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as Omit<RecipeHistoryItem, "id">),
+        }));
+        setHistory(items);
+      } catch (e: any) {
+        setError(e.message || "Failed to load history");
+        console.error("Błąd Firestore:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
+  }, [user]);
+
+  const addRecipe = async (
+    item: Omit<RecipeHistoryItem, "id" | "timestamp">
+  ) => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    try {
+      console.log("Próba zapisu do Firestore:", user?.uid, item);
+      const docRef = await addDoc(
+        collection(db, "users", user.uid, "recipes"),
+        {
+          ...item,
+          timestamp: Date.now(),
+        }
+      );
+      setHistory((prev) => [
+        {
+          ...item,
+          id: docRef.id,
+          timestamp: Date.now(),
+        },
+        ...prev,
+      ]);
+    } catch (e: any) {
+      setError(e.message || "Failed to add recipe");
+      console.error("Błąd Firestore:", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeRecipe = (id: string) => {
-    setHistory((prev) => prev.filter((item) => item.id !== id));
+  const removeRecipe = async (id: string) => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await deleteDoc(doc(db, "users", user.uid, "recipes", id));
+      setHistory((prev) => prev.filter((item) => item.id !== id));
+    } catch (e: any) {
+      setError(e.message || "Failed to remove recipe");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const clearHistory = () => {
-    setHistory([]);
+  const clearHistory = async () => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const q = query(collection(db, "users", user.uid, "recipes"));
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((docSnap) => {
+        batch.delete(docSnap.ref);
+      });
+      await batch.commit();
+      setHistory([]);
+    } catch (e: any) {
+      setError(e.message || "Failed to clear history");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <RecipeHistoryContext.Provider
-      value={{ history, addRecipe, removeRecipe, clearHistory }}
+      value={{ history, loading, error, addRecipe, removeRecipe, clearHistory }}
     >
       {children}
     </RecipeHistoryContext.Provider>

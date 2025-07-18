@@ -63,13 +63,15 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <RecipeHistoryProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <AuthProvider>
+    <AuthProvider>
+      <RecipeHistoryProvider>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
           <RootStack />
           <StatusBar style="auto" />
-        </AuthProvider>
-      </ThemeProvider>
-    </RecipeHistoryProvider>
+        </ThemeProvider>
+      </RecipeHistoryProvider>
+    </AuthProvider>
   );
 }
