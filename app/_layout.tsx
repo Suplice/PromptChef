@@ -1,4 +1,5 @@
 import { AuthProvider, useAuthContext } from "@/context/AuthContext";
+import { RecipeHistoryProvider } from "@/context/RecipeHistoryContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import {
   DarkTheme,
@@ -62,11 +63,13 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <RootStack />
-        <StatusBar style="auto" />
-      </AuthProvider>
-    </ThemeProvider>
+    <RecipeHistoryProvider>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <AuthProvider>
+          <RootStack />
+          <StatusBar style="auto" />
+        </AuthProvider>
+      </ThemeProvider>
+    </RecipeHistoryProvider>
   );
 }

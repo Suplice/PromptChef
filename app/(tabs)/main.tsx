@@ -1,9 +1,11 @@
 import IngredientList from "@/components/ui/IngredientList";
 import IngredientPicker from "@/components/ui/IngredientPicker";
+import RecipeHistoryList from "@/components/ui/RecipeHistoryList";
 import RecipeSheet from "@/components/ui/RecipeSheet";
+import { useRecipeHistory } from "@/context/RecipeHistoryContext";
 import { useHFRecipe } from "@/hooks/useHFRecipe";
 import { Picker } from "@react-native-picker/picker";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const INGREDIENTS = [
@@ -39,6 +41,10 @@ const MainScreen: React.FC = () => {
     HF_MODELS[0].value
   );
   const [recipeSheetVisible, setRecipeSheetVisible] = useState(false);
+  const { history, addRecipe } = useRecipeHistory();
+  const [openedHistoryRecipe, setOpenedHistoryRecipe] = useState<null | {
+    recipe: string;
+  }>(null);
 
   const {
     loading,
@@ -77,8 +83,26 @@ const MainScreen: React.FC = () => {
     setModel(value);
   };
 
+  useEffect(() => {
+    if (recipe && recipeSheetVisible) {
+      addRecipe({
+        ingredients: chosenIngredients,
+        model: selectedModel,
+        recipe,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipe]);
+
   return (
     <View style={styles.container}>
+      <RecipeHistoryList
+        history={history}
+        onOpen={(item) => {
+          setOpenedHistoryRecipe({ recipe: item.recipe });
+          setRecipeSheetVisible(false);
+        }}
+      />
       <Text style={styles.title}>Select ingredients</Text>
       <IngredientPicker
         availableIngredients={INGREDIENTS.filter(
@@ -111,9 +135,12 @@ const MainScreen: React.FC = () => {
       </Picker>
       {error && <Text style={{ color: "red", marginBottom: 8 }}>{error}</Text>}
       <RecipeSheet
-        visible={recipeSheetVisible}
-        recipe={recipe}
-        onClose={handleReset}
+        visible={recipeSheetVisible || !!openedHistoryRecipe}
+        recipe={openedHistoryRecipe ? openedHistoryRecipe.recipe : recipe}
+        onClose={() => {
+          setRecipeSheetVisible(false);
+          setOpenedHistoryRecipe(null);
+        }}
         onReset={handleReset}
       />
       {!recipe && (
